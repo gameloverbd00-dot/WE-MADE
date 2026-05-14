@@ -1,115 +1,114 @@
+import { useState, useEffect } from "react";
+
 export default function App() {
-  const [phone, setPhone] = useState("");
-  const [amount, setAmount] = useState("");
   const [requests, setRequests] = useState([]);
   const [admin, setAdmin] = useState(false);
   const [password, setPassword] = useState("");
+  const [userPhone, setUserPhone] = useState("");
+  const [searchPhone, setSearchPhone] = useState("");
+  const [amount, setAmount] = useState("");
 
-  // load data
   useEffect(() => {
-    const data = localStorage.getItem("we_made");
+    const data = localStorage.getItem("we_made_data");
     if (data) setRequests(JSON.parse(data));
   }, []);
 
-  // save data
   const save = (data) => {
-    localStorage.setItem("we_made", JSON.stringify(data));
+    localStorage.setItem("we_made_data", JSON.stringify(data));
     setRequests(data);
   };
 
-  // send request
-  const sendRequest = () => {
-    if (!phone || !amount) return alert("Fill all fields");
-
+  // অ্যাডমিন নতুন এন্ট্রি করবে
+  const addDeposit = () => {
+    if (!userPhone || !amount) return alert("সবগুলো ঘর পূরণ করুন");
     const newData = [
       ...requests,
       {
         id: Date.now(),
-        phone,
+        phone: userPhone,
         amount,
-        status: "pending",
+        status: "Confirmed",
         time: new Date().toLocaleString(),
       },
     ];
-
     save(newData);
-    setPhone("");
+    setUserPhone("");
     setAmount("");
+    alert("সফলভাবে জমা হয়েছে!");
   };
 
-  // login
   const login = () => {
-    if (password === "admin123") setAdmin(true);
-    else alert("Wrong password");
+    if (password === "ifty123") setAdmin(true); // এখানে আপনার পছন্দের পাসওয়ার্ড দিন
+    else alert("ভুল পাসওয়ার্ড");
   };
 
-  // update status
-  const updateStatus = (id, status) => {
-    const updated = requests.map((r) =>
-      r.id === id ? { ...r, status } : r
-    );
-    save(updated);
-  };
+  // মেম্বাররা শুধু তাদের ডাটা ফিল্টার করে দেখবে
+  const memberData = requests.filter((r) => r.phone === searchPhone);
 
   return (
-    <div style={{ padding: 20, maxWidth: 500, margin: "auto" }}>
-      <h2>🌐 WE MADE</h2>
-      <p>Simple Request System</p>
+    <div style={{ padding: 20, maxWidth: 500, margin: "auto", fontFamily: "Arial" }}>
+      <h2 style={{ textAlign: "center" }}>🌐 WE MADE সমিতি</h2>
+      <hr />
 
       {!admin ? (
         <>
-          <h3>User Panel</h3>
-
+          {/* মেম্বার সেকশন */}
+          <h3>সদস্য প্যানেল (নিজের হিসাব দেখুন)</h3>
           <input
-            placeholder="Phone"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            placeholder="আপনার মোবাইল নম্বর দিন"
+            value={searchPhone}
+            onChange={(e) => setSearchPhone(e.target.value)}
+            style={{ width: "90%", padding: 10, marginBottom: 10 }}
           />
+          
+          {searchPhone && memberData.length > 0 ? (
+            memberData.map((d) => (
+              <div key={d.id} style={{ border: "1px solid green", padding: 10, marginTop: 5 }}>
+                <p>💰 পরিমাণ: {d.amount} টাকা</p>
+                <p>🕒 তারিখ: {d.time}</p>
+                <p>✅ স্ট্যাটাস: {d.status}</p>
+              </div>
+            ))
+          ) : searchPhone ? (
+            <p>এই নম্বরে কোনো তথ্য পাওয়া যায়নি।</p>
+          ) : null}
 
-          <input
-            placeholder="Amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-
-          <button onClick={sendRequest}>Send Request</button>
-
-          <hr />
-
-          <h3>Admin Login</h3>
-
+          <hr style={{ marginTop: 40 }} />
+          <h3>অ্যাডমিন লগইন</h3>
           <input
             type="password"
-            placeholder="Password"
+            placeholder="অ্যাডমিন পাসওয়ার্ড"
             onChange={(e) => setPassword(e.target.value)}
+            style={{ width: "90%", padding: 10, marginBottom: 10 }}
           />
-
-          <button onClick={login}>Login</button>
+          <button onClick={login} style={{ width: "100%", padding: 10, cursor: "pointer" }}>লগইন</button>
         </>
       ) : (
         <>
-          <h3>Admin Panel</h3>
+          {/* অ্যাডমিন সেকশন - শুধু আপনি ক্যাশ এন্ট্রি করবেন */}
+          <h3>অ্যাডমিন ড্যাশবোর্ড (ক্যাশ এন্ট্রি)</h3>
+          <button onClick={() => setAdmin(false)}>লগআউট</button>
+          
+          <div style={{ marginTop: 20, background: "#f0f0f0", padding: 15 }}>
+            <h4>নতুন জমা যোগ করুন</h4>
+            <input
+              placeholder="সদস্যের ফোন নম্বর"
+              value={userPhone}
+              onChange={(e) => setUserPhone(e.target.value)}
+              style={{ width: "90%", padding: 8, marginBottom: 10 }}
+            />
+            <input
+              placeholder="টাকার পরিমাণ"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              style={{ width: "90%", padding: 8, marginBottom: 10 }}
+            />
+            <button onClick={addDeposit} style={{ background: "green", color: "white", padding: 10 }}>জমা নিশ্চিত করুন</button>
+          </div>
 
-          {requests.length === 0 && <p>No requests yet</p>}
-
+          <h4>সর্বশেষ এন্ট্রিগুলো:</h4>
           {requests.map((r) => (
-            <div
-              key={r.id}
-              style={{ border: "1px solid black", margin: 5, padding: 5 }}
-            >
-              <p>📱 {r.phone}</p>
-              <p>💰 {r.amount}</p>
-              <p>🕒 {r.time}</p>
-              <p>Status: {r.status}</p>
-
-              <button onClick={() => updateStatus(r.id, "approved")}>
-                Approve
-              </button>
-
-              <button onClick={() => updateStatus(r.id, "rejected")}>
-                Reject
-              </button>
-            </div>
+            <p key={r.id} style={{ fontSize: "12px" }}>📱 {r.phone} - 💰 {r.amount} টাকা ({r.time})</p>
           ))}
         </>
       )}
