@@ -47,7 +47,7 @@ export default function App() {
 
   return (
     <div style={{ padding: 20, maxWidth: 500, margin: "auto", fontFamily: "Arial" }}>
-      <h2 style={{ textAlign: "center" }}>🌐 WE MADE সমিতি</h2>
+      <h2 style={{ textAlign: "center" }}>🌐 WE MADE সমিতি 1</h2>
       <hr />
 
       {!admin ? (
